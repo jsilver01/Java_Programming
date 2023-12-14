@@ -1,0 +1,115 @@
+package jeKim.finaltest;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
+import week15.example.MyFrame;
+
+import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.util.List;
+
+public class jekimFinalFrame extends JFrame {
+    SubjectManager manager;
+
+    Container frame = getContentPane();
+
+    JPanel northPanel;
+    JTextField tf;
+    JComboBox<String> combo;
+    JRadioButton asc, desc;
+    DefaultTableModel model;
+    JTable table;
+    boolean sortingflag = true; // 오름차순
+    String[] arr = {"ES0406", "CA0407", "DC0408"};
+    String[] header = {"학번", "이름"}; // 테이블 헤더
+
+    public jekimFinalFrame(String title, SubjectManager manager) {
+        super(title);
+        this.manager = manager;
+        this.setSize(500, 250);
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        init();
+        this.setVisible(true);
+    }
+
+    private void init() {
+        northPanel = new JPanel();
+
+        combo = new JComboBox<>(arr);
+        combo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                updateTableData((String) combo.getSelectedItem());
+            }
+        });
+
+        asc = new JRadioButton("ASC", true);
+        desc = new JRadioButton("DESC");
+        ButtonGroup g = new ButtonGroup();
+        g.add(asc);
+        g.add(desc);
+
+        asc.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                sortingflag = true;
+                updateTableData((String) combo.getSelectedItem());
+            }
+        });
+
+        desc.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                sortingflag = false;
+                updateTableData((String) combo.getSelectedItem());
+            }
+        });
+
+        JLabel label = new JLabel("검색할 학번 ");
+
+        tf = new JTextField(10);
+        tf.addActionListener(e -> {
+            String stdID = tf.getText();
+            tf.setText("");
+            List<Subject> subjects = manager.findStudent(stdID); // 학번으로 학생이 수강 중인 과목 리스트를 가져오는 메소드를 가정합니다.
+            updateTableForStudent(subjects);
+        });
+
+        // 컴포넌트를 northPanel에 추가합니다.
+
+        northPanel.add(combo);
+        northPanel.add(label);
+        northPanel.add(tf);
+        northPanel.add(asc);
+        northPanel.add(desc);
+
+        frame.add(northPanel, BorderLayout.NORTH);
+
+        model = new DefaultTableModel(header, 0);
+        table = new JTable(model);
+        frame.add(new JScrollPane(table), BorderLayout.CENTER);
+    }
+
+    private void updateTableData(String subjectID) {
+        // 선택된 과목의 학생 목록을 가져와서 테이블에 표시
+        Subject subject = manager.findSubject(subjectID); // 과목 ID로 학생 목록을 가져오는 메소드를 가정합니다.
+        if (subject != null) {
+            DefaultTableModel model = (DefaultTableModel) table.getModel();
+            model.setRowCount(0); // 테이블 데이터 초기화
+            for (Student s : subject.stdset) {
+                model.addRow(new Object[]{s.stdID, s.stdName}); // 학생 ID와 이름을 테이블에 추가
+            }
+        }
+    }
+
+    private void updateTableForStudent(List<Subject> subjects) {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0); 
+        if (subjects != null) {
+            for (Subject sub : subjects) {
+                model.addRow(new Object[]{sub.getSubID(), sub.getSubName()}); 
+            }
+        }else {
+        	JOptionPane.showMessageDialog(frame, "학번을 확인해 주세요");
+        }
+    }
+}

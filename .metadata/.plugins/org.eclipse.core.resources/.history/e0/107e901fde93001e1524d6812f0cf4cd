@@ -1,0 +1,82 @@
+package week15.example;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class VocManager {
+	String userName;
+	private ArrayList<Word> voc = new ArrayList<>();
+
+	public VocManager(String userName){
+		this.userName = userName;
+	}
+	
+	public void addWord(Word word) {	
+		if(!voc.add(word)) {
+			System.out.println("단어장에 단어가 등록되지 않았습니다.");
+		}
+	}
+	
+//	public String makeVoc(String fileName) {		
+//		try(Scanner scan = new Scanner(new File(fileName))){
+//			while(scan.hasNextLine()) {
+//				String str = scan.nextLine();
+//				String[] temp = str.split("\t");
+//				this.addWord(new Word(temp[0].trim(), temp[1].trim()));
+//			}
+//			
+//		}catch(FileNotFoundException e) {			
+//			return "단어장이 생성되지 않았습니다. \n파일명을 확인하세요.";
+//		}
+//		return "단어장 생성이 완료되었습니다.";		
+//	}
+	
+	public boolean makeVoc(String fileName) {		
+		try(Scanner scan = new Scanner(new File(fileName))){
+			while(scan.hasNextLine()) {
+				String str = scan.nextLine();
+				String[] temp = str.split("\t");
+				this.addWord(new Word(temp[0].trim(), temp[1].trim()));
+			}
+			
+		}catch(FileNotFoundException e) {			
+			return false;
+		}
+		return true;		
+	}
+	
+	public String searchVoc2(String sWord) {
+		String str="";
+		for(Word word : voc) {			
+			if(word.eng.contains(sWord)) {
+				str += word+"\n";					
+			}
+		}
+		return str;
+	}
+	
+
+	public String searchVoc(String sWord) {
+		String result = "";
+		for(Word word : voc) {
+			if(word.eng.equals(sWord)) {
+				result = "단어의 뜻 : "+word.kor;
+				return result;
+			}
+		}
+		
+		result = "단어장에 등록되어 있지 않습니다.";			
+		return result;		
+	}
+		
+}
+
+
+
+
+
+
+
+

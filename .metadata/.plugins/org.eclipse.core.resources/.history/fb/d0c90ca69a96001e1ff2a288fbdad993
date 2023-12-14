@@ -1,0 +1,22 @@
+package jeKim.finaltest;
+
+import javax.swing.JFrame;
+
+public class jekimFinalFrame extends JFrame {
+	SubjectManager manager;	
+
+	public jekimFinalFrame(String title, SubjectManager manager){
+		super(title);
+		this.manager = manager;		
+		this.setSize(500,250);
+		this.setLocationRelativeTo(null);
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		init();
+		this.setVisible(true);
+	}
+
+	private void init() {
+		
+	}
+
+}

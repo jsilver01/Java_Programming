@@ -1,0 +1,201 @@
+package week15.example;
+
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.List;
+import java.util.Vector;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+
+public class MyFrame extends JFrame {
+	String filename;
+	Container frame = getContentPane();
+	VocManager voc;
+	
+	JPanel northPanel;
+	JTextField tf;
+	JTextArea ta;
+	String[] arr = {"전체검색", "부분검색"};
+	JComboBox<String> combo;
+	boolean searchflag = true; //전체검색
+	
+	String[] header = {"영어 단어","단어 뜻"};
+	DefaultTableModel model;
+	JTable table;
+	
+	JRadioButton asc, desc;
+	
+	boolean sortingflag = true; //오름차순
+
+	public MyFrame(String filename) {
+		this.filename = filename;
+		this.setTitle("2000 홍길동");
+		this.setSize(500,500);
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		this.setLocationRelativeTo(null);
+		init();
+		this.setVisible(true);
+		voc = new VocManager("홍길동");
+//		voc.makeVoc(filename);
+		
+		//1206 새롭게 추가된 부분
+		boolean result = voc.makeVoc(filename);
+		if(result) {
+			JOptionPane.showMessageDialog(this, "단어장 생성이 완료되었습니다.");
+			initTableData();
+		}else {
+			JOptionPane.showMessageDialog(this, "파일 경로를 확인하세요.");
+		}
+	}
+	
+	void removeTableData() {
+		if(model.getRowCount()>0) {
+			this.model = new DefaultTableModel(header, 0);
+			this.table.setModel(model);
+		}
+	}
+	
+	private void initTableData() {
+		// TODO Auto-generated method stub
+		List<Word> list = null;
+		
+		
+		if(sortingflag) {
+			list= voc.voc.stream().sorted((o1,o2) -> o1.eng.compareTo(o2.eng)).toList();
+		}else {
+			list = voc.voc.stream().sorted((o1,o2)-> o1.eng.compareTo(o2.eng)*-1).toList();
+		}
+		
+		//방법1 - 삭제
+//		for(int i = model.getRowCount()-1; i >= 0; i--) {
+//			model.removeRow(i);
+//		}
+		
+		//방법2 - 삭제
+//		if(model.getRowCount()>0) {
+//			this.model = new DefaultTableModel(header, 0);
+//			this.table.setModel(model);
+//		}
+		removeTableData();
+		
+		for(Word w : list) {
+			model.addRow(new String[] {w.eng, w.kor});
+		}
+	}
+
+	private void init() {
+		// TODO Auto-generated method stub
+		this.northPanel = new JPanel();
+		
+		this.asc = new JRadioButton("ASC");
+		this.desc = new JRadioButton("DESC");
+		ButtonGroup g = new ButtonGroup();
+		g.add(asc);
+		g.add(desc);
+		
+		this.asc.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Auto-generated method stub
+				if(e.getStateChange()==ItemEvent.SELECTED) {
+					sortingflag = true;
+					initTableData();
+				}
+			}
+			
+		});
+		
+		this.desc.addItemListener(e -> {
+			if(e.getStateChange()==ItemEvent.SELECTED) {
+				sortingflag = false;
+				initTableData();
+			}
+		});
+		
+		this.northPanel.add(asc);
+		this.northPanel.add(desc);
+		
+		JLabel label = new JLabel("검색할 단어 ");
+		this.northPanel.add(label);
+		
+		this.tf = new JTextField(10);
+		this.tf.setFont(new Font("고딕체", Font.ITALIC, 20));
+		this.tf.addActionListener(e -> {
+			String eng = tf.getText();
+			tf.setText("");
+//			System.out.println(eng);
+			if(searchflag) {
+				
+				//String kor = voc.searchVoc(eng);
+	//			System.out.println(kor);
+				Word w = voc.searchVoc(eng);
+				if(w !=null) {
+					removeTableData();
+					model.addRow(new String[] {w.eng, w.kor});
+				}else {
+					JOptionPane.showMessageDialog(MyFrame.this, "찾는 단어가 없습니다.");
+				}
+				//this.ta.append(kor+"\n");
+				
+			}else {
+				
+				//String kor = voc.searchVoc2(eng);
+				//this.ta.append(kor+"\n");
+				//ta.append(voc.searchVoc2(eng));
+				var list = voc.searchVoc2(eng);
+				if(list.size()>0) {
+					removeTableData();
+					for(Word w : list) {
+						model.addRow(new String[] {w.eng, w.kor});
+					}
+				}else {
+					JOptionPane.showMessageDialog(MyFrame.this, "찾는 단어가 없습니다.");
+				}
+			}
+			
+		});
+		
+		
+		this.northPanel.add(tf);
+		this.combo = new JComboBox<>(arr);
+		this.combo.addActionListener(e->{
+			if(combo.getSelectedIndex()==0)
+				searchflag = true;
+			else
+				searchflag = false;
+			
+		});
+		
+		this.northPanel.add(combo);
+		
+		this.frame.add(northPanel, BorderLayout.NORTH);
+		
+		this.ta = new JTextArea(10,10);
+//		this.model = new DefaultTableModel(header, 0);
+		this.table = new JTable(model);
+		
+		
+		//this.frame.add(new JScrollPane(ta), BorderLayout.CENTER);
+		this.frame.add(new JScrollPane(table), BorderLayout.CENTER);
+	}
+	
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		MyFrame f = new MyFrame("words.txt");
+	}	
+}
